@@ -93,10 +93,10 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       <fieldset>
         <legend>あなた</legend>
         <div class="row2">
-          <label class="f"><span>名前</span><input type="text" id="name" maxlength="20"></label>
-          <label class="f"><span>XのID（@なし）</span><input type="text" id="handle" maxlength="20"></label>
+          <label class="f"><span>名前</span><input type="text" id="name" placeholder="例：つくるん" maxlength="20"></label>
+          <label class="f"><span>XのID（@なし）</span><input type="text" id="handle" placeholder="例：zero_to_company" maxlength="20"></label>
         </div>
-        <label class="f"><span>ひとこと</span><input type="text" id="tagline" maxlength="34"></label>
+        <label class="f"><span>ひとこと</span><input type="text" id="tagline" placeholder="例：AIと一緒に毎週ツールを作っています" maxlength="34"></label>
         <div class="file">
           <label>アイコン画像を選ぶ<input type="file" id="avatar" accept="image/*"></label>
           <button class="reset" type="button" id="noavatar">画像を外す</button>
@@ -105,23 +105,23 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       <hr class="sep">
       <fieldset>
         <legend>作っているもの</legend>
-        <div class="app"><label class="f"><span>アプリ・サービス 1</span><input type="text" id="a1" maxlength="18"></label><label class="f"><span>状態</span><select id="s1"></select></label></div>
+        <div class="app"><label class="f"><span>アプリ・サービス 1</span><input type="text" id="a1" placeholder="例：GrowPit" maxlength="18"></label><label class="f"><span>状態</span><select id="s1"></select></label></div>
         <div class="app"><label class="f"><span>アプリ・サービス 2</span><input type="text" id="a2" maxlength="18"></label><label class="f"><span>状態</span><select id="s2"></select></label></div>
         <div class="app"><label class="f"><span>アプリ・サービス 3</span><input type="text" id="a3" maxlength="18"></label><label class="f"><span>状態</span><select id="s3"></select></label></div>
-        <label class="f"><span>使っている技術（カンマ区切り・6個まで）</span><input type="text" id="stack" maxlength="80"></label>
+        <label class="f"><span>使っている技術（カンマ区切り・6個まで）</span><input type="text" id="stack" placeholder="例：Claude, HTML, Expo" maxlength="80"></label>
       </fieldset>
       <hr class="sep">
       <fieldset>
         <legend>数字</legend>
         <label class="f"><span>開発を始めた日（今日までの日数を自動で計算）</span><input type="date" id="start"></label>
         <div class="row2">
-          <label class="f"><span>フォロワー</span><input type="number" id="followers" min="0"></label>
-          <label class="f"><span>今の月の売上（円）</span><input type="number" id="revenue" min="0"></label>
+          <label class="f"><span>フォロワー</span><input type="number" id="followers" placeholder="例：12" min="0"></label>
+          <label class="f"><span>今の月の売上（円）</span><input type="number" id="revenue" placeholder="例：0" min="0"></label>
         </div>
-        <label class="f"><span>目標</span><input type="text" id="goal" maxlength="22"></label>
+        <label class="f"><span>目標</span><input type="text" id="goal" placeholder="例：月5万円" maxlength="22"></label>
         <label class="chk"><input type="checkbox" id="shownum">数字の欄をカードに出す</label>
       </fieldset>
-      <button class="reset" type="button" id="reset">例に戻す</button>
+      <button class="reset" type="button" id="reset">全部消す</button>
     </form>
   </div>
 
@@ -151,7 +151,7 @@ const FONTS={
   hand:{name:'手書き風',fam:'"Klee One"',h:600,m:600,l:600,num:'"Klee One"',sample:'"Klee One"'},
   dot:{name:'ドット',fam:'"DotGothic16"',h:400,m:400,l:400,num:'"DotGothic16"',sample:'"DotGothic16"'}
 };
-const EX={name:'つくるん',handle:'zero_to_company',tagline:'AIを相棒に、ゼロから会社をつくる',a1:'GrowPit',s1:'beta',a2:'バグハンター',s2:'dev',a3:'PIXEL HIRAGANA',s3:'dev',stack:'Claude, HTML, Expo, Firebase',start:'2026-10-14',followers:12,revenue:0,goal:'月5万円',shownum:true,theme:'mono',font:'gothic'};
+const EX={name:'',handle:'',tagline:'',a1:'',s1:'dev',a2:'',s2:'dev',a3:'',s3:'dev',stack:'',start:'',followers:'',revenue:'',goal:'',shownum:false,theme:'mono',font:'gothic'};
 let S={...EX}, avatarImg=null;
 try{const saved=JSON.parse(localStorage.getItem('devcard')||'null');if(saved)S={...EX,...saved};}catch{}
 ['s1','s2','s3'].forEach(id=>$('#'+id).innerHTML=STATUS.map(([v,l])=>`<option value="${v}">${l}</option>`).join(''));
@@ -186,24 +186,24 @@ function draw(){
   else{c.fillStyle=T.acc;c.fillRect(ax,ay,ar*2,ar*2);c.fillStyle=T.ink;c.textAlign='center';c.textBaseline='middle';c.font=`${jw(900)} 50px ${JP}`;c.fillText((S.name||'?').trim().slice(0,1),ax+ar,ay+ar+2);}
   c.restore();c.lineWidth=4;c.strokeStyle=T.acc;c.beginPath();c.arc(ax+ar,ay+ar,ar+3,0,Math.PI*2);c.stroke();
   // name & handle
-  c.textAlign='left';c.textBaseline='alphabetic';c.fillStyle=T.fg;
-  const nameS=fit(S.name||'名前',560,54,900,JP);c.fillText(S.name||'名前',ax+ar*2+28,ay+62);
-  c.fillStyle=T.mut;c.font=`600 24px ${NUM}`;c.fillText(S.handle?'@'+S.handle.replace(/^@/,''):'',ax+ar*2+30,ay+100);
+  c.textAlign='left';c.textBaseline='alphabetic';c.fillStyle=S.name?T.fg:T.mut;
+  const nameS=fit(S.name||'あなたの名前',560,54,900,JP);c.fillText(S.name||'あなたの名前',ax+ar*2+28,ay+62);
+  c.fillStyle=T.mut;c.font=`600 24px ${NUM}`;c.fillText(S.handle?'@'+S.handle.replace(/^@/,''):'@your_id',ax+ar*2+30,ay+100);
   // tagline
-  c.fillStyle=T.sub;fit(S.tagline||'',W-L*2,30,700,JP);c.fillText(S.tagline||'',L,ay+ar*2+62);
+  c.fillStyle=S.tagline?T.sub:T.mut;const tg=S.tagline||'ひとことを入れてください';fit(tg,W-L*2,30,700,JP);c.fillText(tg,L,ay+ar*2+62);
   // day counter
   const d=days();
   if(d){c.textAlign='right';c.fillStyle=T.mut;c.font=`700 20px ${NUM}`;c.fillText('DAY',W-L,92);c.fillStyle=T.acc;c.font=`800 92px ${NUM}`;c.fillText(String(d),W-L,178);c.fillStyle=T.mut;c.font=`${jw(500)} 18px ${JP}`;c.fillText('開発をはじめて',W-L,206);c.textAlign='left';}
   // building
   let y=300;c.fillStyle=T.mut;c.font=`700 18px ${NUM}`;c.fillText('BUILDING',L,y);y+=18;
-  const apps=[[S.a1,S.s1],[S.a2,S.s2],[S.a3,S.s3]].filter(a=>a[0]&&a[0].trim());
+  let apps=[[S.a1,S.s1],[S.a2,S.s2],[S.a3,S.s3]].filter(a=>a[0]&&a[0].trim());const noApps=!apps.length;if(noApps)apps=[['作っているアプリ','dev']];
   const colW=(W-L*2-24*2)/3;
   apps.forEach(([n,s],i)=>{const x=L+i*(colW+24);rr(x,y,colW,92,16);c.fillStyle=T.chip;c.fill();
     const st=(STATUS.find(z=>z[0]===s)||STATUS[0])[1];
     c.fillStyle=s==='live'?'#34C77B':s==='paused'?T.mut:T.acc;c.beginPath();c.arc(x+24,y+30,7,0,Math.PI*2);c.fill();
     c.fillStyle=T.sub;c.font=`${jw(700)} 17px ${JP}`;c.fillText(st,x+40,y+36);
-    c.fillStyle=T.fg;fit(n,colW-44,30,900,JP);c.fillText(n,x+22,y+74);});
-  if(!apps.length){c.fillStyle=T.mut;c.font=`${jw(500)} 22px ${JP}`;c.fillText('（作っているものを入れてください）',L,y+50);}
+    c.fillStyle=noApps?T.mut:T.fg;fit(n,colW-44,30,900,JP);c.fillText(n,x+22,y+74);});
+  
   // stack
   y=460;const stack=(S.stack||'').split(/[,、，]/).map(s=>s.trim()).filter(Boolean).slice(0,6);
   if(stack.length){c.fillStyle=T.mut;c.font=`700 18px ${NUM}`;c.fillText('STACK',L,y);let x=L;y+=16;
@@ -216,7 +216,7 @@ function draw(){
     let x=L;const yy=560;items.forEach(([k,v])=>{c.fillStyle=T.mut;c.font=`${jw(500)} 17px ${JP}`;c.fillText(k,x,yy);c.fillStyle=T.fg;const sz=fit(v,300,40,800,NUM);c.fillText(v,x,yy+46);x+=Math.max(200,c.measureText(v).width+70);});}
   // credit
   c.textAlign='right';c.fillStyle=T.mut;c.font=`${jw(500)} 15px ${JP}`;c.fillText('個人開発者カードメーカー by @zero_to_company',W-L,H-30);c.textAlign='left';
-  $('#post').href='https://x.com/intent/post?text='+encodeURIComponent(`${S.name||''}の個人開発者カードを作りました。\n\n#個人開発 #個人開発者カード`);
+  $('#post').href='https://x.com/intent/post?text='+encodeURIComponent(`個人開発者カードを作りました。\n\n#個人開発 #個人開発者カード\nhttps://zero-to-company.github.io/devcard/`);
 }
 let tm;function update(){read();persist();clearTimeout(tm);tm=setTimeout(draw,60);}
 $('#form').addEventListener('input',update);
