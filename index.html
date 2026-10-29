@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="作っているもの・技術・開発日数を入れると、Xに貼れる個人開発者カードが30秒で作れます。">
+<meta property="og:title" content="個人開発者カードメーカー">
+<meta property="og:description" content="Xに貼れる個人開発者カードを30秒で。by 0→1 WORKS">
+</head><body>
+<title>個人開発者カードメーカー</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Maru+Gothic:wght@500;700;900&family=Shippori+Mincho+B1:wght@600;800&family=DotGothic16&family=Klee+One:wght@600&family=Dela+Gothic+One&display=swap">
+<style>
+/* Layout: live card preview on top (the product), form below; side by side on wide screens. Dark lavender = 0→1 WORKS. */
+:root{
+  --bg:#100E18; --panel:#171423; --panel2:#130F1E; --line:#262138; --line2:#332D4D;
+  --fg:#F2F0F8; --fg2:#B3ADC7; --muted:#857F9C; --acc:#A78BFA; --ink:#100E18; --ok:#7CD9A8; --bad:#FF7A8A;
+  --jp:'Noto Sans JP','Hiragino Sans','Yu Gothic UI',system-ui,sans-serif;
+  --num:'Geist','Noto Sans JP',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--jp);font-size:15px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-direction:column;gap:6px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--num);font-weight:700;color:var(--fg2);font-size:13px;letter-spacing:.08em}
+.mark{width:26px;height:26px;border-radius:8px;background:var(--acc);display:grid;place-items:center}
+h1{margin:0;font-size:clamp(26px,6vw,38px);font-weight:900;line-height:1.3;text-wrap:balance}
+h1 em{font-style:normal;color:var(--acc)}
+.lead{margin:0;color:var(--fg2);max-width:46em}
+.grid{display:grid;grid-template-columns:1fr;gap:22px;align-items:start}
+@media (min-width:980px){.grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}.preview{position:sticky;top:16px}}
+.preview{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cardbox{border-radius:14px;overflow:hidden;border:1px solid var(--line2);background:#000;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+#out{display:block;width:100%;height:auto;aspect-ratio:1200/675}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{min-height:46px;padding:0 20px;border-radius:12px;border:1px solid var(--line2);background:transparent;color:var(--fg);font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:var(--ink)}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+.msg{font-size:13px;color:var(--ok);min-height:1.4em}
+.msg.err{color:var(--bad)}
+.themes{display:flex;flex-wrap:wrap;gap:8px}
+.th{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 12px 0 6px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--fg2);font:inherit;font-size:13px;cursor:pointer}
+.th i{width:28px;height:28px;border-radius:50%;background:var(--sw)}
+.fo{padding:0 14px}.fo b{font-weight:400;font-size:16px}
+.th[aria-pressed="true"]{border-color:var(--acc);color:var(--fg);background:var(--panel)}
+form{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+fieldset{border:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+legend{font-weight:900;font-size:14px;color:var(--acc);letter-spacing:.06em;margin-bottom:4px;padding:0}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f > span{font-size:12.5px;color:var(--fg2);font-weight:500}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=text],input[type=date],input[type=number],select{width:100%;min-height:44px;background:var(--panel2);color:var(--fg);border:1px solid var(--line2);border-radius:10px;padding:0 12px;font:inherit;font-size:15px}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px}
+.file{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.file label{position:relative;display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border:1px dashed var(--line2);border-radius:10px;color:var(--fg2);font-size:13px;cursor:pointer}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg2)}
+.chk input{accent-color:var(--acc);width:18px;height:18px}
+.sep{border:none;border-top:1px solid var(--line);margin:0}
+.reset{background:none;border:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;align-self:flex-start;padding:4px 0}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#100E18" stroke-width="2.8" stroke-linecap="round"><path d="M4 18l6-6 4 4 6-8"/></svg></span>0→1 WORKS · TOOL 01</div>
+    <h1><span style="white-space:nowrap">個人開発者カードを、</span><wbr><em style="white-space:nowrap">30秒で。</em></h1>
+    <p class="lead">作っているもの、使っている技術、開発の日数を入れるだけ。Xに貼れるプロフィール画像ができます。入れた内容はこの端末にだけ保存されます。</p>
+  </header>
+
+  <div class="grid">
+    <section class="preview" aria-label="カードのプレビュー">
+      <div class="cardbox"><canvas id="out" width="1200" height="675" role="img" aria-label="個人開発者カードのプレビュー"></canvas></div>
+      <div class="themes" role="group" aria-label="カードの色" id="themes"></div>
+      <div class="themes" role="group" aria-label="フォント" id="fonts"></div>
+      <div class="actions">
+        <button class="btn primary" type="button" id="save">画像を保存する</button>
+        <a class="btn" id="post" href="https://x.com/intent/post" target="_blank" rel="noopener">Xに投稿する</a>
+      </div>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      <div id="fallback" hidden>
+        <p class="hint">保存ボタンが使えないときは、下の画像を長押し（パソコンは右クリック）して保存してください。</p>
+        <img id="png" alt="できあがったカード" style="width:100%;border-radius:10px;margin-top:8px">
+      </div>
+      <p class="hint">「Xに投稿する」を押すと投稿画面が開きます。保存した画像を添付してね。</p>
+    </section>
+
+    <form id="form" autocomplete="off" onsubmit="return false">
+      <fieldset>
+        <legend>あなた</legend>
+        <div class="row2">
+          <label class="f"><span>名前</span><input type="text" id="name" maxlength="20"></label>
+          <label class="f"><span>XのID（@なし）</span><input type="text" id="handle" maxlength="20"></label>
+        </div>
+        <label class="f"><span>ひとこと</span><input type="text" id="tagline" maxlength="34"></label>
+        <div class="file">
+          <label>アイコン画像を選ぶ<input type="file" id="avatar" accept="image/*"></label>
+          <button class="reset" type="button" id="noavatar">画像を外す</button>
+        </div>
+      </fieldset>
+      <hr class="sep">
+      <fieldset>
+        <legend>作っているもの</legend>
+        <div class="app"><label class="f"><span>アプリ・サービス 1</span><input type="text" id="a1" maxlength="18"></label><label class="f"><span>状態</span><select id="s1"></select></label></div>
+        <div class="app"><label class="f"><span>アプリ・サービス 2</span><input type="text" id="a2" maxlength="18"></label><label class="f"><span>状態</span><select id="s2"></select></label></div>
+        <div class="app"><label class="f"><span>アプリ・サービス 3</span><input type="text" id="a3" maxlength="18"></label><label class="f"><span>状態</span><select id="s3"></select></label></div>
+        <label class="f"><span>使っている技術（カンマ区切り・6個まで）</span><input type="text" id="stack" maxlength="80"></label>
+      </fieldset>
+      <hr class="sep">
+      <fieldset>
+        <legend>数字</legend>
+        <label class="f"><span>開発を始めた日（今日までの日数を自動で計算）</span><input type="date" id="start"></label>
+        <div class="row2">
+          <label class="f"><span>フォロワー</span><input type="number" id="followers" min="0"></label>
+          <label class="f"><span>今の月の売上（円）</span><input type="number" id="revenue" min="0"></label>
+        </div>
+        <label class="f"><span>目標</span><input type="text" id="goal" maxlength="22"></label>
+        <label class="chk"><input type="checkbox" id="shownum">数字の欄をカードに出す</label>
+      </fieldset>
+      <button class="reset" type="button" id="reset">例に戻す</button>
+    </form>
+  </div>
+
+  <footer>個人開発者カードメーカー · 0→1 WORKS（@zero_to_company）がAIと一緒に作った、毎週1個ツールを出す挑戦の第1弾です。</footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const STATUS=[['dev','開発中'],['live','公開中'],['beta','試作中'],['idea','構想中'],['paused','おやすみ中']];
+const THEMES={
+  mono:{name:'モノクロ',bg1:'#0E0E0E',bg2:'#1B1B1B',fg:'#F5F5F5',sub:'#BDBDBD',mut:'#8A8A8A',acc:'#F5F5F5',chip:'#2A2A2A',line:'#333333',ink:'#0E0E0E'},
+  white:{name:'ホワイト',bg1:'#FFFFFF',bg2:'#F1F1F1',fg:'#111111',sub:'#444444',mut:'#8C8C8C',acc:'#111111',chip:'#ECECEC',line:'#DADADA',ink:'#FFFFFF'},
+  night:{name:'ラベンダー',bg1:'#120F1D',bg2:'#1E1832',fg:'#F2F0F8',sub:'#B3ADC7',mut:'#857F9C',acc:'#A78BFA',chip:'#2A2342',line:'#332D4D',ink:'#120F1D'},
+  ocean:{name:'オーシャン',bg1:'#0B1A2A',bg2:'#10304A',fg:'#EAF4FB',sub:'#A9C3D6',mut:'#7894A8',acc:'#5CC8FF',chip:'#163C5A',line:'#1F4A6B',ink:'#0B1A2A'},
+  forest:{name:'フォレスト',bg1:'#0E1A14',bg2:'#173126',fg:'#EDF5EF',sub:'#B2C9BA',mut:'#7E998A',acc:'#6FD49A',chip:'#1D3B2D',line:'#264A38',ink:'#0E1A14'},
+  sunset:{name:'サンセット',bg1:'#1E0F12',bg2:'#3A1A1A',fg:'#FFF1EA',sub:'#E6BFAF',mut:'#B08A7C',acc:'#FF8A4C',chip:'#4A2420',line:'#5A2E28',ink:'#1E0F12'},
+  navy:{name:'ネイビー×ゴールド',bg1:'#0C1224',bg2:'#16203D',fg:'#F3EFE4',sub:'#C9C2AE',mut:'#8F8A7B',acc:'#E3B85C',chip:'#1E2A4D',line:'#2A365C',ink:'#0C1224'},
+  paper:{name:'ペーパー',bg1:'#F6F2EA',bg2:'#ECE5D8',fg:'#1D1A16',sub:'#4B453D',mut:'#8A8276',acc:'#C2410C',chip:'#E2D9C9',line:'#D6CCBA',ink:'#FFFFFF'},
+  sakura:{name:'さくら',bg1:'#FFF5F7',bg2:'#FBE3EA',fg:'#2A1A21',sub:'#5C4650',mut:'#9A7F8A',acc:'#E0457B',chip:'#F6D3DE',line:'#EFC7D4',ink:'#FFFFFF'},
+  mint:{name:'ミント',bg1:'#F2FBF8',bg2:'#DDF3EC',fg:'#12302A',sub:'#3F5F57',mut:'#7A9890',acc:'#11A683',chip:'#CDEDE3',line:'#BFE3D8',ink:'#FFFFFF'}
+};
+const FONTS={
+  gothic:{name:'ゴシック',fam:'"Noto Sans JP"',h:900,m:700,l:500,num:null,sample:'"Noto Sans JP"'},
+  maru:{name:'丸ゴシック',fam:'"Zen Maru Gothic"',h:900,m:700,l:500,num:null,sample:'"Zen Maru Gothic"'},
+  mincho:{name:'明朝',fam:'"Shippori Mincho B1"',h:800,m:800,l:600,num:null,sample:'"Shippori Mincho B1"'},
+  pop:{name:'ポップ',fam:'"Dela Gothic One"',h:400,m:400,l:400,num:'"Dela Gothic One"',sample:'"Dela Gothic One"'},
+  hand:{name:'手書き風',fam:'"Klee One"',h:600,m:600,l:600,num:'"Klee One"',sample:'"Klee One"'},
+  dot:{name:'ドット',fam:'"DotGothic16"',h:400,m:400,l:400,num:'"DotGothic16"',sample:'"DotGothic16"'}
+};
+const EX={name:'つくるん',handle:'zero_to_company',tagline:'AIを相棒に、ゼロから会社をつくる',a1:'GrowPit',s1:'beta',a2:'バグハンター',s2:'dev',a3:'PIXEL HIRAGANA',s3:'dev',stack:'Claude, HTML, Expo, Firebase',start:'2026-10-14',followers:12,revenue:0,goal:'月5万円',shownum:true,theme:'mono',font:'gothic'};
+let S={...EX}, avatarImg=null;
+try{const saved=JSON.parse(localStorage.getItem('devcard')||'null');if(saved)S={...EX,...saved};}catch{}
+['s1','s2','s3'].forEach(id=>$('#'+id).innerHTML=STATUS.map(([v,l])=>`<option value="${v}">${l}</option>`).join(''));
+$('#fonts').innerHTML=Object.entries(FONTS).map(([k,f])=>`<button type="button" class="th fo" data-f="${k}" aria-pressed="false"><b style='font-family:${f.sample}'>あア字</b>${f.name}</button>`).join('');
+$('#themes').innerHTML=Object.entries(THEMES).map(([k,t])=>`<button type="button" class="th" data-t="${k}" aria-pressed="false" style="--sw:linear-gradient(135deg,${t.bg1} 50%,${t.acc} 50%)"><i></i>${t.name}</button>`).join('');
+const fields=['name','handle','tagline','a1','s1','a2','s2','a3','s3','stack','start','followers','revenue','goal'];
+function fill(){fields.forEach(k=>{$('#'+k).value=S[k]??''});$('#shownum').checked=!!S.shownum;markTheme();}
+function read(){fields.forEach(k=>{S[k]=$('#'+k).value});S.shownum=$('#shownum').checked;}
+function persist(){try{localStorage.setItem('devcard',JSON.stringify(S))}catch{}}
+function markTheme(){document.querySelectorAll('.th[data-t]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.t===S.theme)));document.querySelectorAll('.th[data-f]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.f===S.font)));}
+
+const cv=$('#out'),c=cv.getContext('2d');
+let JP='"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif', NUM='"Geist","Noto Sans JP",sans-serif', FW=FONTS.gothic;
+function jw(w){w=+w;return w>=800?FW.h:w>=600?FW.m:FW.l}
+function setFont(){FW=FONTS[S.font]||FONTS.gothic;JP=FW.fam+',"Noto Sans JP",sans-serif';NUM=(FW.num||'"Geist"')+',"Noto Sans JP",sans-serif';}
+function rr(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function fit(text,max,size,weight,font){if(font===JP)weight=jw(weight);let s=size;c.font=`${weight} ${s}px ${font}`;while(c.measureText(text).width>max&&s>12){s-=2;c.font=`${weight} ${s}px ${font}`;}return s;}
+function days(){if(!S.start)return null;const d=Math.floor((Date.now()-new Date(S.start+'T00:00:00').getTime())/864e5)+1;return d>0?d:null;}
+function draw(){
+  setFont();
+  const T=THEMES[S.theme]||THEMES.night, W=1200, H=675;
+  const g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,T.bg1);g.addColorStop(1,T.bg2);c.fillStyle=g;c.fillRect(0,0,W,H);
+  // dot grid
+  c.fillStyle=T.line;for(let x=40;x<W;x+=40)for(let y=40;y<H;y+=40){c.globalAlpha=.35;c.fillRect(x,y,2,2)}c.globalAlpha=1;
+  // glow
+  const rg=c.createRadialGradient(W-120,90,10,W-120,90,420);rg.addColorStop(0,T.acc+'40');rg.addColorStop(1,T.acc+'00');c.fillStyle=rg;c.fillRect(0,0,W,H);
+  const L=64;
+  // avatar
+  const ax=L,ay=60,ar=56;
+  c.save();c.beginPath();c.arc(ax+ar,ay+ar,ar,0,Math.PI*2);c.closePath();c.clip();
+  if(avatarImg){const s=Math.max(ar*2/avatarImg.width,ar*2/avatarImg.height);const w=avatarImg.width*s,h=avatarImg.height*s;c.drawImage(avatarImg,ax+ar-w/2,ay+ar-h/2,w,h);}
+  else{c.fillStyle=T.acc;c.fillRect(ax,ay,ar*2,ar*2);c.fillStyle=T.ink;c.textAlign='center';c.textBaseline='middle';c.font=`${jw(900)} 50px ${JP}`;c.fillText((S.name||'?').trim().slice(0,1),ax+ar,ay+ar+2);}
+  c.restore();c.lineWidth=4;c.strokeStyle=T.acc;c.beginPath();c.arc(ax+ar,ay+ar,ar+3,0,Math.PI*2);c.stroke();
+  // name & handle
+  c.textAlign='left';c.textBaseline='alphabetic';c.fillStyle=T.fg;
+  const nameS=fit(S.name||'名前',560,54,900,JP);c.fillText(S.name||'名前',ax+ar*2+28,ay+62);
+  c.fillStyle=T.mut;c.font=`600 24px ${NUM}`;c.fillText(S.handle?'@'+S.handle.replace(/^@/,''):'',ax+ar*2+30,ay+100);
+  // tagline
+  c.fillStyle=T.sub;fit(S.tagline||'',W-L*2,30,700,JP);c.fillText(S.tagline||'',L,ay+ar*2+62);
+  // day counter
+  const d=days();
+  if(d){c.textAlign='right';c.fillStyle=T.mut;c.font=`700 20px ${NUM}`;c.fillText('DAY',W-L,92);c.fillStyle=T.acc;c.font=`800 92px ${NUM}`;c.fillText(String(d),W-L,178);c.fillStyle=T.mut;c.font=`${jw(500)} 18px ${JP}`;c.fillText('開発をはじめて',W-L,206);c.textAlign='left';}
+  // building
+  let y=300;c.fillStyle=T.mut;c.font=`700 18px ${NUM}`;c.fillText('BUILDING',L,y);y+=18;
+  const apps=[[S.a1,S.s1],[S.a2,S.s2],[S.a3,S.s3]].filter(a=>a[0]&&a[0].trim());
+  const colW=(W-L*2-24*2)/3;
+  apps.forEach(([n,s],i)=>{const x=L+i*(colW+24);rr(x,y,colW,92,16);c.fillStyle=T.chip;c.fill();
+    const st=(STATUS.find(z=>z[0]===s)||STATUS[0])[1];
+    c.fillStyle=s==='live'?'#34C77B':s==='paused'?T.mut:T.acc;c.beginPath();c.arc(x+24,y+30,7,0,Math.PI*2);c.fill();
+    c.fillStyle=T.sub;c.font=`${jw(700)} 17px ${JP}`;c.fillText(st,x+40,y+36);
+    c.fillStyle=T.fg;fit(n,colW-44,30,900,JP);c.fillText(n,x+22,y+74);});
+  if(!apps.length){c.fillStyle=T.mut;c.font=`${jw(500)} 22px ${JP}`;c.fillText('（作っているものを入れてください）',L,y+50);}
+  // stack
+  y=460;const stack=(S.stack||'').split(/[,、，]/).map(s=>s.trim()).filter(Boolean).slice(0,6);
+  if(stack.length){c.fillStyle=T.mut;c.font=`700 18px ${NUM}`;c.fillText('STACK',L,y);let x=L;y+=16;
+    stack.forEach(t=>{c.font=`700 20px ${NUM}`;const w=c.measureText(t).width+32;if(x+w>W-L)return;rr(x,y,w,42,21);c.strokeStyle=T.line;c.lineWidth=2;c.stroke();c.fillStyle=T.fg;c.fillText(t,x+16,y+28);x+=w+10;});}
+  // numbers
+  if(S.shownum){const items=[];
+    if(S.followers!==''&&S.followers!=null)items.push(['フォロワー',Number(S.followers).toLocaleString('ja-JP')]);
+    if(S.revenue!==''&&S.revenue!=null)items.push(['今月の売上','¥'+Number(S.revenue).toLocaleString('ja-JP')]);
+    if(S.goal)items.push(['目標',S.goal]);
+    let x=L;const yy=560;items.forEach(([k,v])=>{c.fillStyle=T.mut;c.font=`${jw(500)} 17px ${JP}`;c.fillText(k,x,yy);c.fillStyle=T.fg;const sz=fit(v,300,40,800,NUM);c.fillText(v,x,yy+46);x+=Math.max(200,c.measureText(v).width+70);});}
+  // credit
+  c.textAlign='right';c.fillStyle=T.mut;c.font=`${jw(500)} 15px ${JP}`;c.fillText('個人開発者カードメーカー by @zero_to_company',W-L,H-30);c.textAlign='left';
+  $('#post').href='https://x.com/intent/post?text='+encodeURIComponent(`${S.name||''}の個人開発者カードを作りました。\n\n#個人開発 #個人開発者カード`);
+}
+let tm;function update(){read();persist();clearTimeout(tm);tm=setTimeout(draw,60);}
+$('#form').addEventListener('input',update);
+$('#fonts').addEventListener('click',async e=>{const b=e.target.closest('.th');if(!b)return;S.font=b.dataset.f;markTheme();persist();const f=FONTS[S.font];try{await document.fonts.load(`${f.h} 40px ${f.fam}`);}catch{};draw();});
+$('#themes').addEventListener('click',e=>{const b=e.target.closest('.th');if(!b)return;S.theme=b.dataset.t;markTheme();persist();draw();});
+$('#avatar').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{avatarImg=im;draw()};im.src=r.result};r.readAsDataURL(f);});
+$('#noavatar').addEventListener('click',()=>{avatarImg=null;$('#avatar').value='';draw();});
+$('#reset').addEventListener('click',()=>{S={...EX};avatarImg=null;fill();persist();draw();});
+function msg(t,err){const m=$('#msg');m.textContent=t;m.classList.toggle('err',!!err);}
+function showFallback(){cv.toBlob(b=>{const u=URL.createObjectURL(b);$('#png').src=u;$('#fallback').hidden=false;});}
+$('#save').addEventListener('click',async()=>{
+  const dl=window.claude?.use?await window.claude.use('downloads'):null;
+  if(!dl){cv.toBlob(b=>{const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`devcard-${(S.handle||'card').replace(/[^\w-]/g,'')}.png`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);msg('保存しました。スマホで保存できないときは、下の画像を長押ししてください。');showFallback();},'image/png');return;}
+  cv.toBlob(async b=>{try{await dl.save({filename:`devcard-${(S.handle||'card').replace(/[^\w-]/g,'')}.png`,data:b});msg('保存しました。');}
+    catch(e){if(e&&e.code==='declined'){msg('保存をやめました。');}else if(e&&e.code==='rate_limited'){msg('少し待ってからもう一度押してください。',true);}else{showFallback();msg('保存ボタンが使えませんでした。下の画像を長押しして保存してください。',true);}}},'image/png');
+});
+fill();
+(document.fonts?Promise.all([document.fonts.load('900 40px "Noto Sans JP"'),document.fonts.load('800 40px "Geist"'),document.fonts.load('700 20px "Noto Sans JP"'),document.fonts.load(`${(FONTS[S.font]||FONTS.gothic).h} 40px ${(FONTS[S.font]||FONTS.gothic).fam}`)]).catch(()=>{}):Promise.resolve()).then(draw);
+draw();
+</script>
+
+</body></html>
